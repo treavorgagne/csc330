@@ -15,5 +15,8 @@ test-03: babies-image.x86-linux
 test-04: babies-image.x86-linux
 	sml @SMLload  babies-image.x86-linux data/babies.txt 1920 < tests/test-04.in 
 
+test-05: babies-image.x86-linux
+	sml @SMLload  babies-image.x86-linux data/babies.txt 1920 < tests/test-05.in 
+
 clean:
 	rm -f babies-image.x86-linux

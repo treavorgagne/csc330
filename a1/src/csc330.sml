@@ -139,9 +139,9 @@ fun parse_command_line args =
 fun finish st =
    (print (st);exit())
 
-(*
+
 fun print y =
     myraise DoNotUse
-*)
+
 
 end              
