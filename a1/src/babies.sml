@@ -25,6 +25,7 @@ fun size_of_list(list): int =
 
 (* 
   use case: list_of_lists(["Anne,0,0,1,1,3, ...,"Xander,1,2,3,4,11"])
+  explanation: makes a list of lists
   return: list * list
 *)
 fun list_of_lists(list) = 
@@ -33,8 +34,25 @@ fun list_of_lists(list) =
   else split_at(hd(list), #",") :: list_of_lists(tl(list));
 
 (* 
-  use case: 
-  return: formatted strings of search_list
+  use case: get_babies_data(string * list * list, string * list, string, string)
+  
+  meaning: First variable pass list of lists of strings of baby data for babies_data. 
+           Second variable a list of strings of babies that wish to be found. Third 
+           variable the offset year string and fourth variable the string of entries
+           per list of entries.
+  
+  explanation: Function has 5 steps. First get_babies_data calls get_babies_match checks if babies_data 
+               and search_list are non empty in which get_babies_match is called else output "" (nothing). 
+               Secondly, get_babies_match_trimmed finds matches then calls get_babies_stats and recursively
+               continues to find more matches in the search_list. Thirdly, get_babies_stats initiates the
+               data search with empty and 0 zero values in all data fields when calling calculate_babies_stats.
+               Calculate_babies_stats calculates the corresponding data wanted to be outputted. When the end 
+               of the data list is reached output_babies_stats is called to format the output and convert all
+               int and real numbers to strings for the output. In short, get_babies_matched_trimmed recursive
+               to find matches and when a match is found the inner functions (get_babies_stats, calculate_babies_stats
+               , and output_babies_stats) calculate and output the wanted baby data.
+
+  return: formatted data strings for each match on search_list
 *)
 fun get_babies_data(babies_data, search_list, offsetSt, num_entries) =
   let
