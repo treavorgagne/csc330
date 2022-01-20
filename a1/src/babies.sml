@@ -62,22 +62,22 @@ fun get_babies_data(babies_data, search_list, offsetSt, num_entries) =
                             val min_count = int_to_string(#2(hd(min_list)))
                             val max_year = int_to_string(#1(hd(max_list)))
                             val max_count = int_to_string(#2(hd(max_list)))
-                            val total = hd(tl(list))
-                            val total_int = valOf(fromString(total))
+                            val total_int = valOf(fromString(hd(tl(list))))
                             val total_real = int_to_real(total_int)
+                            val total_string = int_to_string(total_int)
                             val num_entries_int = valOf(fromString(num_entries))
                             val num_enteries_real = int_to_real(num_entries_int) 
                             val avg_real = (total_real/num_enteries_real)
                             val avg_string = real_to_string(avg_real)
                           in
-                            " Total: " ^ total ^ "\n" ^ 
-                            " Years: " ^ int_to_string(years) ^ "\n" ^ 
-                            " " ^ int_to_string(curr_year_int) ^": " ^ hd(list) ^ "\n" ^
-                            " First: " ^ first_year ^ " " ^ first_count ^"\n" ^
-                            " Last: " ^ last_year ^ " " ^  last_count ^ "\n" ^
-                            " Min: " ^ min_year ^ " " ^ min_count ^ "\n" ^
-                            " Max: " ^ max_year ^ " " ^ max_count ^ "\n" ^
-                            " Avg: " ^ avg_string ^ "\n"
+                            " Total: " ^ total_string ^ 
+                            "\n Years: " ^ int_to_string(years) ^  
+                            "\n " ^ int_to_string(curr_year_int) ^ ": " ^ hd(list) ^ 
+                            "\n First: " ^ first_year ^ " " ^ first_count ^
+                            "\n Last: " ^ last_year ^ " " ^  last_count ^
+                            "\n Min: " ^ min_year ^ " " ^ min_count ^
+                            "\n Max: " ^ max_year ^ " " ^ max_count ^
+                            "\n Avg: " ^ avg_string ^ "\n"
                           end
                       in 
                         if 0 < curr_year_count_int
