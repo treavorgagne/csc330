@@ -84,7 +84,7 @@ fun get_babies_data(babies_data, search_list, offsetSt, num_entries) =
                         then 
                           if null max_list andalso null min_list
                           then output_babies_stats(pos+1, years+1, [(curr_year_int, curr_year_count_int)]@first_pair, [(curr_year_int, curr_year_count_int)]@last_pair, [(curr_year_int, curr_year_count_int)]@min_list, [(curr_year_int, curr_year_count_int)]@max_list)
-                          else if curr_year_count_int > #2(hd(max_list))
+                          else if curr_year_count_int >= #2(hd(max_list))
                           then output_babies_stats(pos+1, years+1, first_pair, [(curr_year_int, curr_year_count_int)]@last_pair, min_list, [(curr_year_int, curr_year_count_int)]@max_list)
                           else if curr_year_count_int < #2(hd(min_list))
                           then output_babies_stats(pos+1, years+1, first_pair, [(curr_year_int, curr_year_count_int)]@last_pair, [(curr_year_int, curr_year_count_int)]@min_list, max_list)
@@ -95,7 +95,7 @@ fun get_babies_data(babies_data, search_list, offsetSt, num_entries) =
                     then 
                       if null max_list andalso null min_list
                       then calculate_babies_stats(tl(list), pos+1, years+1, [(curr_year_int, curr_year_count_int)]@first_pair, [(curr_year_int, curr_year_count_int)]@last_pair, [(curr_year_int, curr_year_count_int)]@min_list, [(curr_year_int, curr_year_count_int)]@max_list)
-                      else if curr_year_count_int > #2(hd(max_list))
+                      else if curr_year_count_int >= #2(hd(max_list))
                       then calculate_babies_stats(tl(list), pos+1, years+1, first_pair, [(curr_year_int, curr_year_count_int)]@last_pair, min_list, [(curr_year_int, curr_year_count_int)]@max_list)
                       else if curr_year_count_int < #2(hd(min_list))
                       then calculate_babies_stats(tl(list), pos+1, years+1, first_pair, [(curr_year_int, curr_year_count_int)]@last_pair, [(curr_year_int, curr_year_count_int)]@min_list, max_list)
