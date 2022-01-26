@@ -140,8 +140,8 @@ fun finish st =
    (print (st);exit())
 
 
-fun print y =
-    myraise DoNotUse
+(* fun print y =
+    myraise DoNotUse *)
 
 
 end              
