@@ -12,6 +12,7 @@ infix 8 CONTAINS
 infix 9 ++
 infix 9 --
 
+
 (* val is_empty_set = fn : ’a set -> bool *)
 (* complete *)
 fun is_empty_set s =
@@ -44,17 +45,15 @@ fun max_in_set s =
                             |   EQUAL => find_max(t, max, comp)
                         end
     in
-    case s of 
-        EmptySet comp => raise SetIsEmpty
-    |   Set(list, comp) =>  case list of 
-                                [] => raise SetIsEmpty
-                            |   h::t => find_max(t, h, comp)
-    
+        case s of 
+            EmptySet comp => raise SetIsEmpty
+        |   Set(list, comp) =>  case list of 
+                                    [] => raise SetIsEmpty
+                                |   h::t => find_max(t, h, comp)
     end
 
 (* val insert_into_set = fn : ’a set * ’a -> ’a set *)
 (* complete *)
-(* insertion must be in order *)
 fun insert_into_set(s,v) =
     let 
         fun insert(set_list, comp, new_list) = 
@@ -71,6 +70,7 @@ fun insert_into_set(s,v) =
     in 
         case s of
             EmptySet(comp) => Set([v], comp)
+        |   Set([], comp) => Set([v], comp)
         |   Set(list, comp) => insert(list, comp, [])
     end
 
@@ -92,6 +92,7 @@ fun in_set(s, v) =
     in
         case s of
             EmptySet(comp) => false
+        |   Set([], comp) => false
         |   Set(list, comp) => find_match(list, comp)
     end
 
@@ -99,63 +100,73 @@ fun in_set(s, v) =
 (* complete *)
 fun remove_from_set(s,v) =
     let 
-        fun remove(set_list, comp, new_list) = 
+        fun aux(set_list, comp, new_list) = 
             case set_list of 
                 [] => Set(new_list, comp)
             |   h::t => let
                             val ord = comp(v, h)
                         in
                             case ord of
-                                EQUAL => Set(new_list@t, comp)
-                            |   GREATER => remove(t, comp, new_list@[h])
+                                EQUAL =>    let 
+                                                val x = new_list@t
+                                            in 
+                                                case x of 
+                                                    [] => EmptySet(comp)
+                                                |   _ => Set(x,comp)
+                                            end
+                                         
+                            |   GREATER => aux(t, comp, new_list@[h])
                             |   LESS => s
                         end
     in 
         case s of
-            EmptySet(comp) => Set([], comp)
-        |   Set(list, comp) => remove(list, comp, [])
+            EmptySet(comp) => EmptySet(comp)
+        |   Set([], comp) => EmptySet(comp)
+        |   Set(list, comp) => aux(list, comp, [])
     end
 
 (* val union_set = fn : ’a set * ’a set -> ’a set *)
 (* must be tail recursive *)
 fun union_set(s, t) =
     let 
-        fun union(s_set_acc, list) = 
+        fun aux(s_set_acc, list) = 
         case list of 
             [] => s_set_acc
         |   h::tail =>  let 
                             val new_set = insert_into_set(s_set_acc, h)
                         in 
-                            union(new_set, tail)
+                            aux(new_set, tail)
                         end
     in 
         case (s,t) of 
             (EmptySet(s_comp), EmptySet(t_comp)) => EmptySet(s_comp)
         |   (Set(s_list,s_comp), EmptySet(t_comp)) => s
         |   (EmptySet(s_comp), Set(t_list, t_comp)) => t
-        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => union(s, t_list)
+        |   (Set([], s_comp), Set([], t_comp)) => EmptySet(s_comp)
+        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => aux(s, t_list)
     end 
 
 (* val intersect_set = fn : ’a set * ’a set -> ’a set *)
 (* must be tail recursive *)
 fun intersect_set(s, t) =
     let 
-        fun intersect(t_list, list_acc, s_comp) = 
+        fun intersect(t_list, set_acc, s_comp) = 
             case t_list of 
-                [] => Set(list_acc, s_comp)
+                [] => set_acc
             |   h::tail =>  let 
                                 val x = in_set(s, h)
                             in
                                 case x of 
-                                    true => intersect(tail, list_acc@[h], s_comp)
-                                |   false => intersect(tail, list_acc, s_comp)
+                                    true => intersect(tail, insert_into_set(set_acc, h), s_comp)
+                                |   false => intersect(tail, set_acc, s_comp)
                             end
     in 
         case (s,t) of 
             (EmptySet(s_comp), EmptySet(t_comp)) => EmptySet(s_comp)
         |   (Set(s_list,s_comp), EmptySet(t_comp)) => EmptySet(s_comp)
         |   (EmptySet(s_comp), Set(t_list, t_comp)) => EmptySet(s_comp)
-        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => intersect(t_list, [], s_comp)
+        |   (Set([], s_comp), Set([], t_comp)) => EmptySet(s_comp)
+        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => intersect(t_list, EmptySet(s_comp), s_comp)
     end
 
 (* val except_set = fn : ’a set * ’a set -> ’a set *)
@@ -169,7 +180,7 @@ fun except_set(s, t) =
                         in 
                             case x of 
                                 Set([], comp) => EmptySet(comp)
-                            |   Set(l, comp) => x
+                            |   _ => s_set_acc
                         end 
             |   h::tail =>  let 
                                 val new_set = remove_from_set(s_set_acc, h)
@@ -181,6 +192,7 @@ fun except_set(s, t) =
             (EmptySet(s_comp), EmptySet(t_comp)) => EmptySet(s_comp)
         |   (Set(s_list,s_comp), EmptySet(t_comp)) => s
         |   (EmptySet(s_comp), Set(t_list, t_comp)) => EmptySet(s_comp)
+        |   (Set([], s_comp), Set([], t_comp)) => EmptySet(s_comp)
         |   (Set(s_list, s_comp), Set(t_list, t_comp)) => except(s, t_list)
     end
     
@@ -188,21 +200,21 @@ fun except_set(s, t) =
 (* complete *)
 fun size_set(s: 'a set) =
     let 
-        fun get_size(set_list, size) = 
+        fun aux(set_list, size) = 
             case set_list of 
                 [] => size
-            |   h::t => get_size(t, size+1)
+            |   h::t => aux(t, size+1)
     in
         case s of 
             EmptySet comp => 0
-        |   Set(list, comp) => get_size(list, 0)
+        |   Set(list, comp) => aux(list, 0)
     end
 
 (* val equal_set = fn : ’a set * ’a set -> bool *)
 (* complete if both sets are the same type *)
 fun equal_set(s, t) =
     let 
-        fun equals(s_list, s_comp, t_list, t_comp) = 
+        fun aux(s_list, s_comp, t_list, t_comp) = 
             case (s_list, t_list) of
                 ([], []) => true
             |    (sh::st, th::tt) => let 
@@ -210,7 +222,7 @@ fun equal_set(s, t) =
                                         val t_ord = t_comp(sh,th)
                                       in
                                         case (s_ord, t_ord) of
-                                                (EQUAL, EQUAL) => equals(st, s_comp, tt, t_comp)
+                                                (EQUAL, EQUAL) => aux(st, s_comp, tt, t_comp)
                                             |   (_,_) => false 
                                       end
             |   (_,_) => false 
@@ -219,21 +231,22 @@ fun equal_set(s, t) =
             (EmptySet(s_comp), EmptySet(t_comp)) => true
         |   (Set(s_list,s_comp), EmptySet(t_comp)) => false
         |   (EmptySet(s_comp), Set(t_list, t_comp)) => false
-        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => equals(s_list, s_comp, t_list, t_comp)
+        |   (Set([], s_comp), Set([], t_comp)) => true
+        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => aux(s_list, s_comp, t_list, t_comp)
     end 
     
 (* val is_subset_of = fn : ’a set * ’a set -> bool *)
 (* complete *)
 fun is_subset_of(s, t) =
     let 
-        fun subset(list) =
+        fun aux(list) =
             case list of
                 [] => true
             |   h::tail =>  let
                                 val x = in_set(t, h)
                             in
                                 case x of 
-                                    true => subset(tail)
+                                    true => aux(tail)
                                 |   false => false
                             end
     in 
@@ -241,21 +254,22 @@ fun is_subset_of(s, t) =
             (EmptySet(s_comp), EmptySet(t_comp)) => true
         |   (Set(s_list,s_comp), EmptySet(t_comp)) => false
         |   (EmptySet(s_comp), Set(t_list, t_comp)) => true
-        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => subset(s_list)
+        |   (Set([], s_comp), Set([], t_comp)) => true
+        |   (Set(s_list, s_comp), Set(t_list, t_comp)) => aux(s_list)
     end 
         
 (* val list_to_set = fn : ’a list * (’a * ’a -> order) -> ’a set *)
 (* complete *)
 fun list_to_set(lst, f) =
     let 
-        fun put_into_set(lst_acc, s_acc) = 
+        fun aux(lst_acc, s_acc) = 
             case lst_acc of 
                 [] => s_acc
-            |   h::t => put_into_set(t, insert_into_set(s_acc, h))
+            |   h::t => aux(t, insert_into_set(s_acc, h))
     in
         case lst of 
             [] => EmptySet f
-        |   h::t => put_into_set(lst, EmptySet(f))
+        |   h::t => aux(lst, EmptySet(f))
     end
 
 (* val set_to_list = fn : ’a set -> ’a list *)
@@ -285,6 +299,7 @@ fun str_set (s, fstr) =
     in  
         case s of 
             EmptySet(comp) => "{}"
+        |   Set([], comp) => "{}"
         |   Set(list, comp) => to_str(list , "{")
     end 
 
@@ -303,6 +318,7 @@ fun map_set (s, fcomp, f) =
     in 
     case s of 
         EmptySet(comp) => EmptySet(fcomp)
+    |   Set([], fcomp) => EmptySet(fcomp)
     |   Set(list, fcomp) => aux(list, EmptySet(fcomp))
     end
 
@@ -328,3 +344,20 @@ fun comp_list_any (a: 'a list, b: 'a list, fcomp : ('a * 'a) -> order) =
                                     |   LESS => LESS
                                     |   GREATER => GREATER
                                  end
+
+val se = EmptySet Int.compare
+val sa = se ++ 1 ++ 2 ++ 3 ++ 5 ++ 3 ++ 2
+val sb = se ++ 9 ++ 3 ++ 2 --2
+val s1 = is_empty_set se
+val s2 = sb UNION sb 
+val s3 = sb INTERSECT sa 
+val s4 = sb EXCEPT sb 
+val s5 = 2 IN sb
+val s6 = se IS_SUBSET_OF sb
+
+val emp = EmptySet Int.compare
+val one = emp ++ 1
+val two = emp ++ 2
+val test = one -- 1 
+val test2 = emp -- 1 
+val int = one INTERSECT two
