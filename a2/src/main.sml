@@ -74,8 +74,8 @@ fun test_set_ops() =
       val sb = se ++ 9 ++ 3 ++ 2 --2
       val _ = test(is_empty_set se, "testing is_empty_set")
       val _ = test(sb UNION sb IDENTICAL sb, "testing union")
-      val _ = test(sb INTERSECT se IDENTICAL se, "testing intersect")
-      val _ = test(sb EXCEPT sb IDENTICAL se, "testing intersect")
+      val _ = test(sb INTERSECT se IDENTICAL se, "testing intersect1")
+      val _ = test(sb EXCEPT sb IDENTICAL se, "testing intersect2")
       val _ = test(not(2 IN sb), "testing IN")
       val _ = test(se IS_SUBSET_OF sb, "testing IS_SUBSET_OF")
     in

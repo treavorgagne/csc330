@@ -2,6 +2,16 @@ datatype 'a set = EmptySet of ('a * 'a -> order) | Set of 'a list * ('a * 'a -> 
 
 exception SetIsEmpty
 
+infix 1 IDENTICAL
+infix 3 EXCEPT
+infix 4 IS_SUBSET_OF
+infix 5 INTERSECT
+infix 6 UNION
+infix 7 IN
+infix 8 CONTAINS        
+infix 9 ++
+infix 9 --
+
 (* val is_empty_set = fn : ’a set -> bool *)
 (* complete *)
 fun is_empty_set s =
@@ -56,7 +66,7 @@ fun insert_into_set(s,v) =
                             case ord of
                                 EQUAL => s
                             |   GREATER => insert(t, comp, new_list@[h]) 
-                            |   LESS => Set(new_list@[h]@[v]@t, comp)
+                            |   LESS => Set(new_list@[v]@[h]@t, comp)
                         end
     in 
         case s of
@@ -91,7 +101,7 @@ fun remove_from_set(s,v) =
     let 
         fun remove(set_list, comp, new_list) = 
             case set_list of 
-                [] => Set(new_list@[v], comp)
+                [] => Set(new_list, comp)
             |   h::t => let
                             val ord = comp(v, h)
                         in
@@ -154,12 +164,18 @@ fun except_set(s, t) =
     let 
         fun except(s_set_acc, list) = 
             case list of
-                [] => s_set_acc 
-            |   h::tail => let 
-                            val new_set = remove_from_set(s_set_acc, h)
+                [] =>   let 
+                            val x = s_set_acc
                         in 
-                            except(new_set, tail)
-                        end
+                            case x of 
+                                Set([], comp) => EmptySet(comp)
+                            |   Set(l, comp) => x
+                        end 
+            |   h::tail =>  let 
+                                val new_set = remove_from_set(s_set_acc, h)
+                            in 
+                                except(new_set, tail)
+                            end
     in 
         case (s,t) of 
             (EmptySet(s_comp), EmptySet(t_comp)) => EmptySet(s_comp)
@@ -274,13 +290,41 @@ fun str_set (s, fstr) =
 
 (* val map_set = fn : ’a set * (’b * ’b -> order) * (’a -> ’b) -> ’b set *)
 fun map_set (s, fcomp, f) =
-    EmptySet fcomp
+    let 
+        fun aux(set_list, map_set_acc) = 
+            case set_list of 
+                []  => map_set_acc
+            |   h::tail =>  let 
+                                val x = f(h)
+                                val new_map_set_acc = insert_into_set(map_set_acc, x)
+                            in
+                                aux(tail, new_map_set_acc)
+                            end 
+    in 
+    case s of 
+        EmptySet(comp) => EmptySet(fcomp)
+    |   Set(list, fcomp) => aux(list, EmptySet(fcomp))
+    end
 
-(* fun s -- v = remove_from_set(s,v)
+fun s -- v = remove_from_set(s,v)
 fun s ++ v = insert_into_set(s,v)
 fun s IDENTICAL t = equal_set(s,t)
 fun s UNION t = union_set(s,t)
 fun s INTERSECT t = intersect_set(s,t)
 fun s EXCEPT t = except_set(s,t)
 fun v IN s = in_set(s,v)
-fun s IS_SUBSET_OF t = is_subset_of(s,t) *)
+fun s IS_SUBSET_OF t = is_subset_of(s,t)
+
+fun comp_list_any (a: 'a list, b: 'a list, fcomp : ('a * 'a) -> order) =
+    case (a,b) of
+        ([],[]) => EQUAL
+    |   (ah::atail,[]) => GREATER
+    |   ([],bh::btail) => LESS
+    |   (ah::atail,bh::btail) => let
+                                    val x = fcomp(ah,bh)
+                                 in 
+                                    case x of 
+                                        EQUAL => comp_list_any(atail, btail, fcomp)
+                                    |   LESS => LESS
+                                    |   GREATER => GREATER
+                                 end
