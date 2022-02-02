@@ -207,6 +207,7 @@ fun size_set(s: 'a set) =
     in
         case s of 
             EmptySet comp => 0
+        |   Set([], comp) => 0
         |   Set(list, comp) => aux(list, 0)
     end
 
@@ -304,6 +305,7 @@ fun str_set (s, fstr) =
     end 
 
 (* val map_set = fn : ’a set * (’b * ’b -> order) * (’a -> ’b) -> ’b set *)
+(* complete *)
 fun map_set (s, fcomp, f) =
     let 
         fun aux(set_list, map_set_acc) = 
@@ -322,6 +324,7 @@ fun map_set (s, fcomp, f) =
     |   Set(list, fcomp) => aux(list, EmptySet(fcomp))
     end
 
+(* complete *)
 fun s -- v = remove_from_set(s,v)
 fun s ++ v = insert_into_set(s,v)
 fun s IDENTICAL t = equal_set(s,t)
@@ -331,6 +334,7 @@ fun s EXCEPT t = except_set(s,t)
 fun v IN s = in_set(s,v)
 fun s IS_SUBSET_OF t = is_subset_of(s,t)
 
+(* complete *)
 fun comp_list_any (a: 'a list, b: 'a list, fcomp : ('a * 'a) -> order) =
     case (a,b) of
         ([],[]) => EQUAL
@@ -348,16 +352,20 @@ fun comp_list_any (a: 'a list, b: 'a list, fcomp : ('a * 'a) -> order) =
 val se = EmptySet Int.compare
 val sa = se ++ 1 ++ 2 ++ 3 ++ 5 ++ 3 ++ 2
 val sb = se ++ 9 ++ 3 ++ 2 --2
+val sc = se ++ 8 ++ 6
+
 val s1 = is_empty_set se
 val s2 = sb UNION sb 
 val s3 = sb INTERSECT sa 
 val s4 = sb EXCEPT sb 
-val s5 = 2 IN sb
+val x4 = sc INTERSECT sa 
+val s5 = not(2 IN sb)
 val s6 = se IS_SUBSET_OF sb
 
 val emp = EmptySet Int.compare
 val one = emp ++ 1
 val two = emp ++ 2
-val test = one -- 1 
-val test2 = emp -- 1 
-val int = one INTERSECT two
+val test = one -- 1 -- 1 ++ 1
+val test2 = emp -- 1
+
+val emp2 = one INTERSECT two

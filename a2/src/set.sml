@@ -25,6 +25,7 @@ infix 9 --
 
 (* val is_empty_set = fn : ’a set -> bool *)
 (* complete *)
+(* return true if set empty else false *)
 fun is_empty_set s =
     case s of
         EmptySet comp => true
@@ -33,6 +34,10 @@ fun is_empty_set s =
 
 (* val min_in_set = fn : ’a set -> ’a *)
 (* complete *)
+(* 
+    Since sets are ordered return head of list for the minimum value
+    if the set is non-empty. If set empty raise SetIsEmpty exception.    
+*)
 fun min_in_set s =
     case s of 
         EmptySet comp => raise SetIsEmpty
@@ -43,6 +48,10 @@ fun min_in_set s =
 
 (* val max_in_set = fn : ’a set -> ’a *)
 (* complete *)
+(* 
+    Get max element of set which should be the last element.
+    Raise SetIsEmpty if the set is empty.    
+*)
 fun max_in_set s =
     let 
         fun aux(list, max, comp) = 
@@ -65,6 +74,12 @@ fun max_in_set s =
 
 (* val insert_into_set = fn : ’a set * ’a -> ’a set *)
 (* complete *)
+(* 
+    If set is empty return new set with element v in it.
+    If set is non-empty and element v is not already in the 
+    set create a new list with v is in the correct ordered 
+    position of the set. This is tail recursive.
+*)
 fun insert_into_set(s,v) =
     let 
         fun aux(set_list, comp, acc_list) = 
@@ -87,6 +102,12 @@ fun insert_into_set(s,v) =
 
 (* val in_set = fn : ’a set * ’a -> bool *)
 (* complete *)
+(* 
+    If set is empty return false. Else use 
+    compator function from s to find if v
+    is in the set s. Return true if it is else 
+    false.
+*)
 fun in_set(s, v) =
     let 
         fun aux(list, comp) = 
@@ -109,6 +130,12 @@ fun in_set(s, v) =
 
 (* val remove_from_set = fn : ’a set * ’a -> ’a set *)
 (* complete *)
+(*
+    Returns empty set is set is already empty. Else remove element v
+    in set s. If v is in set v return set s without v else (v not in s)
+    return set s unchanged. If the new set s after removing v is empty
+    then return EmptySet(). Tail recursive.
+*)
 fun remove_from_set(s,v) =
     let 
         fun aux(set_list, comp, acc_list) = 
@@ -137,7 +164,14 @@ fun remove_from_set(s,v) =
     end
 
 (* val union_set = fn : ’a set * ’a set -> ’a set *)
-(* must be tail recursive *)
+(* complete *)
+(*
+    If sets are both empty return empty set. Else return a set 
+    which contains all elements both sets in a combined set.
+    This is tail recursive.
+
+    Note: insert_into_set is tail recursive as well
+*)
 fun union_set(s, t) =
     let 
         fun aux(s_set_acc, list) = 
@@ -158,7 +192,16 @@ fun union_set(s, t) =
     end 
 
 (* val intersect_set = fn : ’a set * ’a set -> ’a set *)
-(* must be tail recursive *)
+(* complete *)
+(* 
+    If both or one set is empty there is no intersection so return 
+    the empty set. Else use in_set to see if elements of set t are 
+    in set s. If element t is in s then add element to accumulator_set
+    variable of the tail recursive function. Else tail recurse without 
+    adding element t to accumelator_set variable.
+
+    Note: insert_into_set is tail recursive as well
+*)
 fun intersect_set(s, t) =
     let 
         fun aux(t_list, set_acc) = 
@@ -181,7 +224,18 @@ fun intersect_set(s, t) =
     end
 
 (* val except_set = fn : ’a set * ’a set -> ’a set *)
-(* must be tail recursive *)
+(* complete *)
+(* 
+    Remove elements of set t from set s. If t is empty
+    return s. If both sets empty or if s is empty then 
+    return the empty set. If not remove elements of set t
+    from set s using remove_from_set() which remove elements 
+    from a set if it is in the set or else the set is unchanged.
+    If the new set is empty after the except return the empty set.
+    This is tail recursive.
+
+    Note: remove_from_set is tail recursive as well
+*)
 fun except_set(s, t) =
     let 
         fun aux(s_set_acc, list) = 
@@ -209,6 +263,7 @@ fun except_set(s, t) =
     
 (* val size_set = fn : ’a set -> int *)
 (* complete *)
+(* Tail recursively find the size of the set and return the size *)
 fun size_set(s: 'a set) =
     let 
         fun aux(set_list, size) = 
@@ -218,11 +273,18 @@ fun size_set(s: 'a set) =
     in
         case s of 
             EmptySet comp => 0
+        |   Set([], comp) => 0
         |   Set(list, comp) => aux(list, 0)
     end
 
 (* val equal_set = fn : ’a set * ’a set -> bool *)
-(* complete if both sets are the same type *)
+(* complete *)
+(* 
+    If sets are empty return true. If one set is empty and the other isnt
+    return false. If both sets are non-empty element by element in both 
+    sets use comparator function s and t comfirm match. If all elements 
+    match return true else false. 
+*)
 fun equal_set(s, t) =
     let 
         fun aux(s_list, s_comp, t_list, t_comp) = 
@@ -271,6 +333,11 @@ fun is_subset_of(s, t) =
         
 (* val list_to_set = fn : ’a list * (’a * ’a -> order) -> ’a set *)
 (* complete *)
+(* 
+    If list is empty return empty set. Else add elements of list 
+    in new set using insert_into_set, so the new set will be in 
+    the correct order. This is tail recursive.
+ *)
 fun list_to_set(lst, f) =
     let 
         fun aux(lst_acc, s_acc) = 
@@ -285,6 +352,7 @@ fun list_to_set(lst, f) =
 
 (* val set_to_list = fn : ’a set -> ’a list *)
 (* complete *)
+(* extract list from set and return list *)
 fun set_to_list s =
     case s of 
         EmptySet comp => []
@@ -292,6 +360,11 @@ fun set_to_list s =
 
 (* val str_set = fn : ’a set * (’a -> string) -> string *)
 (* complete *)
+(* 
+    Transform set into string using fstr. If Set is empty return "{}". Else
+    return set starting with "{" with elemetns converted to strings and separed
+    with ":" and ending with "}". 
+*)
 fun str_set (s, fstr) =
     let 
         fun aux(list, str_acc) = 
@@ -315,6 +388,11 @@ fun str_set (s, fstr) =
     end 
 
 (* val map_set = fn : ’a set * (’b * ’b -> order) * (’a -> ’b) -> ’b set *)
+(* complete *)
+(* 
+    Tail recursively perform transform f on set (non-empty) to return new set.
+    If set s if empty return empty set. 
+ *)
 fun map_set (s, fcomp, f) =
     let 
         fun aux(set_list, map_set_acc) = 
@@ -332,7 +410,8 @@ fun map_set (s, fcomp, f) =
     |   Set([], fcomp) => EmptySet(fcomp)
     |   Set(list, fcomp) => aux(list, EmptySet(fcomp))
     end
-    
+
+(* complete *)
 fun s -- v = remove_from_set(s,v)
 fun s ++ v = insert_into_set(s,v)
 fun s IDENTICAL t = equal_set(s,t)
@@ -342,6 +421,8 @@ fun s EXCEPT t = except_set(s,t)
 fun v IN s = in_set(s,v)
 fun s IS_SUBSET_OF t = is_subset_of(s,t)
 
+(* complete *)
+(* use comparator function to check if list are the same *)
 fun comp_list_any (a: 'a list, b: 'a list, fcomp : ('a * 'a) -> order) =
     case (a,b) of
         ([],[]) => EQUAL
