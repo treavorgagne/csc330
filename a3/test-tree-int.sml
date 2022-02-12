@@ -1,22 +1,11 @@
-
-exception NoAnswer
-exception NotFound
-
 datatype tree = emptyTree |
                 nodeTree of int * tree * tree
 
-datatype pattern = Wildcard
-		 | Variable of string
-		 | UnitP
-		 | ConstP of int
-		 | TupleP of pattern list
-		 | ConstructorP of string * pattern
+exception NotFound
 
-datatype value = Const of int
-	       | Unit
-	       | Tuple of value list
-	       | Constructor of string * value
-
+infix 9 ++
+infix 9 --
+infix 7 == 
 
 (* write your tree functions here *)
 
@@ -55,17 +44,17 @@ fun tree_height t =
 fun tree_fold_pre_order f acc t =
 	case t of
 		emptyTree => acc
-	| 	nodeTree(root_val, node_left, node_right) => tree_fold_pre_order f (tree_fold_pre_order f (f(acc,root_val)) node_left) node_right 
+	| 	nodeTree(root_val, node_left, node_right) => tree_fold_pre_order f (tree_fold_pre_order f (f(root_val,acc)) node_left) node_right 
 
 (* 
   Find the maximum value in the tree (returns an option). Use a val expression and 
   and tree_fold_pre_order to write this function.
- *)
+*)
 (* val tree_max : tree -> int option *)
 (* complete *)
 val tree_max = 
 	let 
-		fun get_max(acc_max, root_val) = 
+		fun get_max(root_val, acc_max) = 
 			case acc_max of 
 				SOME max => if max < root_val
 							 then SOME root_val
@@ -76,19 +65,48 @@ val tree_max =
 	end
 
 (* 
-  Delete node with value v. If v does not exist, raise NotFound. Else rearrange tree 
-  based on the deletion of the node. Uses tree_max and a recursive call to tree_delete.
+  	tree_delete(t,v). First, find the node to delete (if v appears more than once, find the first in-
+	stance). If v does not exist, raise NotFound. Second, if the node to delete has one child only, then
+	simply delete the node and reconnect the child to the parent; otherwise, find the maximum node in the
+	left child, remove it from this subtree, and create a note to replace the one you are deleting (with the
+	new subtree as its left child). Use tree_max and a recursive call to tree_delete.
 *)
 (* val tree_delete : tree * int -> tree *)
-(* incomplete *)
-fun tree_delete(t,v) = t
+(* complete  *)
+fun tree_delete(t,v) = 
+	case t of
+		(* case: empty exception must be caught *)
+		emptyTree => raise NotFound
+		(* case 1 *)
+	|	nodeTree(root_val, emptyTree, emptyTree) => 	if root_val = v 
+														then emptyTree
+														else t
+		(* case 2 *)
+	|	nodeTree(root_val, node_left, emptyTree) => 	if root_val = v 
+														then node_left
+														else nodeTree(root_val, tree_delete(node_left, v), emptyTree)
+		(* case 2 *)
+	|	nodeTree(root_val, emptyTree, node_right) => 	if root_val = v 
+														then node_right
+														else nodeTree(root_val, emptyTree, tree_delete(node_right, v))
+		(* case 3 *)
+	|	nodeTree(root_val, node_left, node_right) => 	if root_val = v 
+														then 
+															let
+																val max_op = tree_max node_left
+																val max = valOf(max_op)
+															in
+																nodeTree(max, tree_delete(node_left,max), node_right)
+															end
+														else nodeTree(root_val, tree_delete(node_left,v), tree_delete(node_right,v))
+
 
 (* Tree to list in pre-order. Using val and tree_fold_pre_order. *)
 (* val tree_to_list : tree -> int list *)
 (* complete *)
 val tree_to_list = 
 	let 
-		fun to_list(list_acc, root_val) = list_acc@[root_val]
+		fun to_list(root_val, list_acc) = list_acc@[root_val]
 	in
 		tree_fold_pre_order to_list []
 	end
@@ -125,7 +143,7 @@ fun tree_filter f t =
 (* complete *)
 val tree_sum_even = 
 	let 
-		fun sum_even(sum_acc, root_val) = 
+		fun sum_even(root_val, sum_acc) = 
 			if (root_val mod 2) = 0
 			then sum_acc + root_val
 			else sum_acc
@@ -147,22 +165,23 @@ fun tree_equal t1 t2  =
       | (nodeTree(n1, l1, r1),nodeTree(n2, l2, r2)) =>
         n1 = n2 andalso (tree_equal l1 l2) andalso (tree_equal r1 r2)
 
-infix 9 ++
-infix 9 --
-infix 7 == 
-
 fun t ++ v = tree_insert_in_order(t, v)
-(* fun t -- v = tree_delete(t, v) *)
+fun t -- v = tree_delete(t, v)
 fun t1 == t2 = tree_equal t1 t2
 
 val empty = emptyTree
 val e = emptyTree ++ 6 ++ 2 ++ 10 ++ 4 ++ 8 ++ 1 ++ 3 ++ 5 ++ 7
 val tt = emptyTree ++ 14 ++ 32 ++ 51 ++ 25 ++ 41 ++ 10 ++ 33 ++ 66 ++ 1 ++ 34
 val ttt = emptyTree ++ 4 ++ 2 ++ 1 ++ 5 ++ 1 ++ 10 ++ 3 ++ 7 ++ 1
+val neg = emptyTree ++ ~4 ++ ~2 ++ ~1 ++ ~5 ++ ~1 ++ ~10 ++ ~3 ++ ~7 ++ ~1
+val ot1 = emptyTree ++ 2 ++ 1
+val ot2 = emptyTree ++ 1 ++ 2
+
+val deleteTest = emptyTree ++ 10 ++ 4 ++ 18 ++ 1 ++ 6 ++ 12 ++ 24
 
 val test_tree_fold =
     ("T4. test tree_fold_pre_order", [
-      (tree_fold_pre_order (op +) 0 tt)
+      (tree_fold_pre_order (op +) 0 ttt) = 34
     ])
 
 val lempty = tree_to_list empty
@@ -176,8 +195,29 @@ val httt = tree_height ttt
 val maxempty = tree_max empty
 val maxtt = tree_max tt
 val maxttt = tree_max ttt
+val maxneg = tree_max neg
 
 val sum_e = tree_sum_even e
 val sum_empty = tree_sum_even empty
 val sum_tt = tree_sum_even tt
 val sum_ttt = tree_sum_even ttt
+
+val lot = tree_to_list ot1
+
+val test1 = ot1 -- 1
+val s = tree_to_list test1
+
+val test2 = ot2 -- 2
+val s2 = tree_to_list test2
+
+val exceptionTest = ot1 -- 1 handle NotFound => ot1
+val exceptionTest1 = empty -- 1 handle NotFound => emptyTree
+
+val d_list1 = tree_to_list(deleteTest)
+val delete = deleteTest -- 10
+val d_list2 = tree_to_list(delete)
+
+val filt1 = tree_filter (fn x => x <= 32) tt
+val filt2 = tree_filter (fn x => x > 32) tt
+val f1_list = tree_to_list(filt1)
+val f2_list = tree_to_list(filt2)
