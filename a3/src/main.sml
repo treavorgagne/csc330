@@ -68,7 +68,7 @@ val test_tree_sum_even =
     ])
 
 (* test pattern matching *)
-(* 
+
 val test_first_answer =
     ("P1. test first_answer", [
       first_answer (fn x => if String.size(x) = 3 then SOME x else NONE) ["this", "is", "the", "end", "of", "the", "world"] = "the"
@@ -129,7 +129,7 @@ val test_first_match =
               ("abc",Unit),
               ("abcd",Const 7)
            ]
-    ]); *)
+    ]);
 
 fun main (prog_name, args) =
     let
@@ -144,15 +144,14 @@ fun main (prog_name, args) =
         test_tree_sum_even
       ]
 
-      (* val pattern_tests = [
+      val pattern_tests = [
         test_first_answer,
         test_all_answers,
         test_check_pattern,
         test_match,
-        test_first_match] *)
+        test_first_match]
 
-      (* val all_tests = tree_tests @ pattern_tests *)
-      val all_tests = tree_tests
+      val all_tests = tree_tests @ pattern_tests
       val tests_done = map do_test_set all_tests
       val passed = (foldr (fn (x, acc) => if x then acc + 1 else acc) 0 tests_done)
       val total = length(tests_done)
