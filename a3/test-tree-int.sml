@@ -18,15 +18,11 @@ infix 7 ==
 fun tree_insert_in_order(t, v) =
 	case t of
     	emptyTree => nodeTree(v, emptyTree, emptyTree)
-    | 	nodeTree(root_val, node_left, node_right) => 	let 
-															val x = Int.compare(v, root_val)
-														in
-															case x of
-																GREATER => nodeTree(root_val, node_left, tree_insert_in_order(node_right, v))
-															|	LESS => nodeTree(root_val, tree_insert_in_order(node_left, v), node_right)
-															|	EQUAL => nodeTree(root_val, tree_insert_in_order(node_left, v), node_right)
-														end 
-
+    | 	nodeTree(root_val, node_left, node_right) => 	case Int.compare(v, root_val) of
+															GREATER => nodeTree(root_val, node_left, tree_insert_in_order(node_right, v))
+														|	LESS => nodeTree(root_val, tree_insert_in_order(node_left, v), node_right)
+														|	EQUAL => nodeTree(root_val, tree_insert_in_order(node_left, v), node_right)
+														
 (* Returns height of the tree. Return max height of tree. 0 for EmptyTree. Use Recursion *)
 (* val tree_height : tree -> int *)
 (* complete *)
@@ -56,9 +52,9 @@ val tree_max =
 	let 
 		fun get_max(root_val, acc_max) = 
 			case acc_max of 
-				SOME max => if max < root_val
-							 then SOME root_val
-							 else SOME max
+				SOME max => (case (max < root_val) of 
+								true => SOME root_val
+							|	false => SOME max)
 			|	NONE => SOME root_val 
 	in
 		tree_fold_pre_order get_max NONE 
@@ -78,27 +74,26 @@ fun tree_delete(t,v) =
 		(* case: empty exception must be caught *)
 		emptyTree => raise NotFound
 		(* case 1 *)
-	|	nodeTree(root_val, emptyTree, emptyTree) => 	if root_val = v 
-														then emptyTree
-														else t
+	|	nodeTree(root_val, emptyTree, emptyTree) =>		(case (root_val = v) of
+															true => emptyTree
+														|	false => t)
 		(* case 2 *)
-	|	nodeTree(root_val, node_left, emptyTree) => 	if root_val = v 
-														then node_left
-														else nodeTree(root_val, tree_delete(node_left, v), emptyTree)
+	|	nodeTree(root_val, node_left, emptyTree) => 	(case (root_val = v) of
+															true => node_left
+														|	false => nodeTree(root_val, tree_delete(node_left, v), emptyTree))
 		(* case 2 *)
-	|	nodeTree(root_val, emptyTree, node_right) => 	if root_val = v 
-														then node_right
-														else nodeTree(root_val, emptyTree, tree_delete(node_right, v))
+	|	nodeTree(root_val, emptyTree, node_right) => 	(case (root_val = v) of
+															true => node_right
+														|	false => nodeTree(root_val, tree_delete(node_right, v), emptyTree))
 		(* case 3 *)
-	|	nodeTree(root_val, node_left, node_right) => 	if root_val = v 
-														then 
-															let
-																val max_op = tree_max node_left
-																val max = valOf(max_op)
-															in
-																nodeTree(max, tree_delete(node_left,max), node_right)
-															end
-														else nodeTree(root_val, tree_delete(node_left,v), tree_delete(node_right,v))
+	|	nodeTree(root_val, node_left, node_right) => 	(case (root_val = v) of
+															true => (let
+																		val max_op = tree_max node_left
+																		val max = valOf(max_op)
+																	in
+																		nodeTree(max, tree_delete(node_left,max), node_right)
+																	end)
+														|	false => nodeTree(root_val, tree_delete(node_left,v), tree_delete(node_right,v)))
 
 
 (* Tree to list in pre-order. Using val and tree_fold_pre_order. *)
@@ -118,21 +113,17 @@ val tree_to_list =
 fun tree_filter f t =
 	case t of 
 		emptyTree => emptyTree
-    | 	nodeTree(root_val, node_left, node_right) => 	let 
-															val x = f root_val
-														in
-															case x of 
-																true => nodeTree(	
-																					root_val, 
-																					tree_filter f node_left, 
-																					tree_filter f node_right
-																				)
-															| 	false =>	let 
-																				val new_tree = tree_delete(t, root_val)
-																			in 
-																				tree_filter f new_tree 
-																			end 
-														end
+    | 	nodeTree(root_val, node_left, node_right) => 	case (f root_val) of 
+															true => nodeTree(	
+																				root_val, 
+																				tree_filter f node_left, 
+																				tree_filter f node_right
+																			)
+														| 	false =>	let 
+																			val new_tree = tree_delete(t, root_val)
+																		in 
+																			tree_filter f new_tree 
+																		end 	
 
 (* 
   Using val expression tree_filter and tree_fold_pre_order, and function composition to
