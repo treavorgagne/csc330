@@ -134,12 +134,17 @@ fun tree_filter f t =
 (* complete *)
 val tree_sum_even = 
 	let 
-		fun sum_even(root_val, sum_acc) = 
-			if (root_val mod 2) = 0
-			then sum_acc + root_val
-			else sum_acc
+		fun sum_even(root_val, sum_acc) = sum_acc + root_val
+		
+		fun elim_odd t = 
+			case t of
+				emptyTree => t
+			|	nodeTree(root_val, node_left, node_right) => (case ((root_val mod 2) = 0) of
+																	true => nodeTree(root_val, elim_odd node_left, elim_odd node_right)
+																|	false => elim_odd (tree_delete(t,root_val)) 
+															  ) 
 	in
-		tree_fold_pre_order sum_even 0
+		tree_fold_pre_order sum_even 0 o elim_odd
 	end
 
 (*  *)
