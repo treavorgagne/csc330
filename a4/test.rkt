@@ -1,15 +1,10 @@
 #lang racket
 
-
-(provide (all-defined-out)) ;; so we can put tests in a second file
-
-; part 1
 (define nat-num-stream
   (letrec
       ([f (lambda (x) (cons x (lambda () (f (+ x 1)))))])
     (lambda () (f 0))))
 
-;#1
 (define (add-pointwise list1 list2)
     (if (and (list? list1) (list? list2)) 
         (letrec ( 
@@ -35,7 +30,6 @@
     ) 
 )
 
-;#2
 (define (add-pointwise-lists list_of_lists)
     (if (list? list_of_lists) 
         (cond 
@@ -51,7 +45,6 @@
     ) 
 )
 
-;#3
 (define (add-pointwise-lists-2 list_of_lists)
     ;;; lambda function using add_pointwise 
     (define f (lambda (acc list) (add-pointwise acc list)))
@@ -63,7 +56,6 @@
     )
 )
 
-;#4
 (define (stream-for-n-steps s n)
     (if (and (number? n) (> n 0))
         ;;; if n is a value greater then 0 build list from stream s
@@ -76,7 +68,6 @@
     )
 )
 
-;#5
 ;;; function form based on nat-num-stream
 (define fibo-stream   
     (letrec 
@@ -93,7 +84,6 @@
     (lambda () (fib -1 -1)))
 )
 
-;#6
 (define (filter-stream f s)
     ;;; save computation of having to get head and tail of stream more than once
     (letrec ([sOut (s)][sHead (car sOut)][sTail (cdr sOut)])
@@ -106,18 +96,17 @@
     ))
 )
 
-;#7
 ;;; Use filter nat-num-stream on to convert the number to a string, then the string to a list of characters. You can compare two lists using equal?
 ;;; filtered results will be palindromes 
 (define palyndromic-numbers
     (filter-stream [lambda (num) (letrec ([str (string->list (number->string num))]) (equal? str (reverse str)))] nat-num-stream))
 
-;#8 macro create-stream
-;;; used macro template and stream template from nat-num-stream
+;;; used macro function template and stream function template from nat-num-stream
 (define-syntax create-stream  ; macro name
     (syntax-rules (using starting at with increment) ; other keywords
         [(create-stream name using csf starting at iO with increment delta) ; how to use macro
             (define name ; form of expansion 
+                ; nat-num-stream function as base
                 (letrec
                     ([f (lambda (x) (cons (csf x) (lambda () (f (+ x delta)))))])
                 (lambda () (f iO))))  
@@ -125,9 +114,6 @@
     )
 ) 
 
-; part 2
-
-;#1
 (define (vector-assoc v vec)
     (letrec ;;; local function call to check for vector pair match
         ([fVec (lambda (i vLength) 
@@ -142,7 +128,6 @@
     (if (vector? vec) (fVec 0 (vector-length vec)) #f))
 )
 
-;#2
 (define (cached-assoc xs n)
     (letrec ([cache (make-vector n #f)] ;;; mutable vector of size n with #f
              [pos 0] ;;; mutatable variable to track round robin cache position 
@@ -162,3 +147,28 @@
     ;;; checks function ws called with proper argument types
     (if (and (list? xs) (number? n)) ret-func ret-false))
 )
+
+(add-pointwise '(-2 2 1) '(4 2))
+(add-pointwise-lists '((1 1) (2 1 2 6) (3) (-5)))
+(add-pointwise-lists-2 '((1 2) (2 4 3 2) (-9) (-2)))
+(stream-for-n-steps nat-num-stream 13)
+(stream-for-n-steps fibo-stream 6)
+(stream-for-n-steps (filter-stream (lambda (i) (> i 2)) fibo-stream) 5)
+(stream-for-n-steps palyndromic-numbers 13)
+
+(create-stream double using (lambda (x) (+ x x)) 
+         starting at 1
+         with increment 1)
+(double)
+(stream-for-n-steps double 10)
+
+(create-stream squares using (lambda (x) (* x x))
+          starting at  (begin (print "starting") 5)
+          with increment (begin (print "inc") 2))
+(squares)
+(stream-for-n-steps squares 5)
+
+(vector-assoc "R" (vector (cons "R" 1) (cons 3 1) (cons 4 1) (cons 5 1)))
+(let
+    [(cache (cached-assoc (list (cons "R" 2) (cons "G" 4)) 3) )]
+            (cache "R"))
