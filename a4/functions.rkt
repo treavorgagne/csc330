@@ -16,8 +16,7 @@
             ;;; limit number of calls to null? on list1
             [l1 (null? list1)] 
             ;;; limit number of calls to null? on list2
-            [l2 (null? list2)] 
-        )
+            [l2 (null? list2)])
         (cond 
             ;;; If list 1 and 2 both null then add null to list
             [(and l1 l2) null] 
@@ -28,12 +27,9 @@
             ;;; If list 1 and 2 both non empty with number lists. Pointwise add list and 2 heads to list together and recurse with tail 1 and 2.
             [(and (number? (car list2)) (number? (car list1))) (cons (+ (car list1) (car list2)) (add-pointwise (cdr list1) (cdr list2)))]
             ;;; condition to catch non number parameters passed into function
-            [#t (error "illegal parameter")]
-        ))
+            [#t (error "illegal parameter")]))
         ;;; condition to catch non list parameters passed into function
-        (error "illegal parameter")
-    ) 
-)
+        (error "illegal parameter")))
 
 ;#2
 (define (add-pointwise-lists list_of_lists)
@@ -44,12 +40,9 @@
             ;;; If head of list a lists. Call add-pointwise with head of list of lists and recurse with tail of list_of_lists.
             [(list? (car list_of_lists)) (add-pointwise (car list_of_lists) (add-pointwise-lists (cdr list_of_lists)))]
             ;;; condition to catch non list parameters passed into function
-            [#t (error "illegal parameter")]
-        )
+            [#t (error "illegal parameter")])
         ;;; condition to catch non list parameters passed into function
-        (error "illegal parameter")
-    ) 
-)
+        (error "illegal parameter")))
 
 ;#3
 (define (add-pointwise-lists-2 list_of_lists)
@@ -59,26 +52,21 @@
         ;;; if list if lists is a list then fold f to piecewise add lists into accumulator
         (foldl f null list_of_lists)
         ;;; condition to catch non list parameters passed into function
-        (error "illegal parameter")
-    )
-)
+        (error "illegal parameter")))
 
 ;#4
 (define (stream-for-n-steps s n)
     (if (and (number? n) (> n 0))
         ;;; if n is a value greater then 0 build list from stream s
-        (letrec ([sOut (s)]) 
+        (letrec ([s_pair (s)]) 
             ;;; add head of stream output to list and recurse with tail of stream and (n-1)
-            (cons (car sOut) (stream-for-n-steps (cdr sOut) (- n 1)))
-        )
+            (cons (car s_pair) (stream-for-n-steps (cdr s_pair) (- n 1))))
         ;;; null terminate list if n is 0 or less
-        null
-    )
-)
+        null))
 
 ;#5
 ;;; function form based on nat-num-stream
-(define fibo-stream   
+(define fibo-stream ;;; stream is a thunk
     (letrec 
         ([fib (lambda (x1 x2) 
             (cond 
@@ -87,24 +75,20 @@
                 ;;; F1 = 1
                 [(= x2 -1) (cons 1 (lambda () (fib 0 1)))]
                 ;;; Fn = F(n-1) + F(n-2)
-                [#t (cons (+ x1 x2) (lambda () (fib x2 (+ x1 x2))))]
-            ))]) 
+                [#t (cons (+ x1 x2) (lambda () (fib x2 (+ x1 x2))))]))]) 
     ;;; start fib
-    (lambda () (fib -1 -1)))
-)
+    (lambda () (fib -1 -1))))
 
 ;#6
 (define (filter-stream f s)
     ;;; save computation of having to get head and tail of stream more than once
-    (letrec ([sOut (s)][sHead (car sOut)][sTail (cdr sOut)])
+    (letrec ([s_pair (s)][s_val (car s_pair)][next_s_thunk (cdr s_pair)])
     ;;; boolean result of filter on stream head
-    (if (f sHead) 
+    (if (f s_val) 
         ;;; cons head of stream and recuvively filter stream
-        (lambda () (cons sHead (filter-stream f sTail)))
+        (lambda () (cons s_val (filter-stream f next_s_thunk)))
         ;;; recursively filter stream 
-        (filter-stream f sTail) 
-    ))
-)
+        (filter-stream f next_s_thunk))))
 
 ;#7
 ;;; Use filter nat-num-stream on to convert the number to a string, then the string to a list of characters. You can compare two lists using equal?
@@ -118,12 +102,10 @@
     (syntax-rules (using starting at with increment) ; other keywords
         [(create-stream name using csf starting at iO with increment delta) ; how to use macro
             (define name ; form of expansion 
+                ; nat-num-stream function as base
                 (letrec
                     ([f (lambda (x) (cons (csf x) (lambda () (f (+ x delta)))))])
-                (lambda () (f iO))))  
-        ]
-    )
-) 
+                (lambda () (f iO))))])) 
 
 ; part 2
 
@@ -139,26 +121,23 @@
                 #f))]);;; return #f on no match found
     ;;; if vec is a vector then initiat fVec with index 0 and size of vector
     ;;; else return #f if improper arguments are given with function call
-    (if (vector? vec) (fVec 0 (vector-length vec)) #f))
-)
+    (if (vector? vec) (fVec 0 (vector-length vec)) #f)))
 
 ;#2
 (define (cached-assoc xs n)
     (letrec ([cache (make-vector n #f)] ;;; mutable vector of size n with #f
              [pos 0] ;;; mutatable variable to track round robin cache position 
              [ret-func (lambda (v) ;;; function returned which receives takes arg v when cached-assoc is called
-                            (letrec ([cache_pair (vector-assoc v cache)]) ;;; local variable to limit executions of vector-assoc 
+                            (let ([cache_pair (vector-assoc v cache)]) ;;; local variable to limit executions of vector-assoc 
                                 (if (equal? #f cache_pair) ;;; checks result of vector-assoc
-                                    (letrec ([assoc_pair (assoc v xs)]) ;;; local variable to limit executions of assoc 
+                                    (let ([assoc_pair (assoc v xs)]) ;;; local variable to limit executions of assoc 
                                         (if (equal? #f assoc_pair) ;;; checks result of assoc
                                             assoc_pair ;;; return #f
                                             (begin  ;;; expressions to be called in order to mutate cache properlly
                                                 (vector-set! cache pos assoc_pair) ;;; mutate index pos of cache
                                                 (set! pos (remainder (+ pos 1) n)) ;;; increment and mod pos using mutation
-                                                assoc_pair) ;;; match found return assoc_pair
-                                            ))
+                                                assoc_pair)));;; match found return assoc_pair
                                     (cache_pair))))] ;;; return matche cache_pair value
              [ret-false (lambda (v) #f)]) ;;; return false is improper arguments are given with cached-assoc call
     ;;; checks function ws called with proper argument types
-    (if (and (list? xs) (number? n)) ret-func ret-false))
-)
+    (if (and (list? xs) (number? n)) ret-func ret-false)))
