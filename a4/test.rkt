@@ -83,7 +83,8 @@
 ;;; Use filter nat-num-stream on to convert the number to a string, then the string to a list of characters. You can compare two lists using equal?
 ;;; filtered results will be palindromes 
 (define palyndromic-numbers
-    (filter-stream [lambda (num) (letrec ([str (string->list (number->string num))]) (equal? str (reverse str)))] nat-num-stream))
+    (letrec ([palyn-filt (lambda (num) (letrec ([str (string->list (number->string num))]) (equal? str (reverse str))))])
+    (filter-stream palyn-filt nat-num-stream)))
 
 ;;; used macro function template and stream function template from nat-num-stream
 (define-syntax create-stream  ; macro name
