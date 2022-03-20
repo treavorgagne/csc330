@@ -38,12 +38,19 @@
         ;;; condition to catch non list parameters passed into function
         (error "illegal parameter")))
 
+;;; used macro function template and stream function template from nat-num-stream
+(define-syntax fold-mac  ; macro name
+    (syntax-rules (filter with and store into) ; other keywords
+        [(fold-mac filter list with f and store into acc ) ; how to use macro
+            (foldl f acc list)])) 
+
 (define (add-pointwise-lists-2 list_of_lists)
     ;;; lambda function using add_pointwise 
     (define f (lambda (acc list) (add-pointwise acc list)))
     (if (list? list_of_lists)
         ;;; if list if lists is a list then fold f to piecewise add lists into accumulator
-        (foldl f null list_of_lists)
+        ;;; (foldl f null list_of_lists)
+        (fold-mac filter list_of_lists with f and store into null)
         ;;; condition to catch non list parameters passed into function
         (error "illegal parameter")))
 
@@ -132,6 +139,9 @@
 (add-pointwise-lists-2 '((1 2) (2 4 3 2) (-9) (-2)))
 (stream-for-n-steps nat-num-stream 13)
 (stream-for-n-steps fibo-stream 6)
+(stream-for-n-steps fibo-stream 1)
+(stream-for-n-steps fibo-stream 0)
+(stream-for-n-steps fibo-stream -2)
 (stream-for-n-steps (filter-stream (lambda (i) (> i 2)) fibo-stream) 5)
 (stream-for-n-steps palyndromic-numbers 13)
 

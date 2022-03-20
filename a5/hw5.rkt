@@ -22,10 +22,22 @@
 ;; Problem A
 
 ;; CHANGE (put your solutions here)
+
+;; designed based on test examples
 (define (mupllist->racketlist lst)
-  "CHANGE")
+  (cond [(apair? lst) (cons (mupllist->racketlist (apair-e1 lst)) (mupllist->racketlist (apair-e2 lst)))]
+        [(aunit? lst) null]
+        [(var? lst) lst]
+        [(int? lst) lst]))
+
+;; designed based on test examples
 (define (racketlist->mupllist lst)
- "CHANGE")
+  (cond [(null? lst) (aunit)]
+        [(list? lst) (letrec ([head (car lst)])
+                      (apair (if (or (int? head) (var? head))
+                                head
+                                (racketlist->mupllist head)) 
+                              (racketlist->mupllist (cdr lst))))]))
 
 ;; Problem B
 
@@ -52,6 +64,56 @@
                        (int-num v2)))
                (error "MUPL addition applied to non-number")))]
         ;; "CHANGE" add more cases here
+        ;; designed based on test examples
+        [(int? e) e]
+        ;; designed based on test examples and descriptions
+        [(ifgreater? e)
+          (letrec ([e1 (eval-under-env (ifgreater-e1 e) env)]
+                [e2 (eval-under-env (ifgreater-e2 e) env)])
+            (if (and (int? e1) (int? e2))
+                (if (> (int-num e1) (int-num e2)) 
+                    (eval-under-env (ifgreater-e3 e) env) 
+                    (eval-under-env (ifgreater-e4 e) env))
+                (error "MUPL ifgreater applied to non-number")))]
+        ;; designed based on test examples and descriptions
+        [(fst? e) 
+          (letrec ([pair (eval-under-env (fst-e e) env)])
+            (if (apair? pair) 
+                (apair-e1 pair) 
+                (error "MUPL fst applied to non-pair")))]
+        ;; designed based on test examples and descriptions
+        [(snd? e) 
+          (letrec ([pair (eval-under-env (snd-e e) env)])
+            (if (apair? pair) 
+                (apair-e2 pair) 
+                (error "MUPL snd applied to non-pair")))]
+        ;; designed based on test examples and descriptions
+        [(isaunit? e) 
+          (letrec ([unit (eval-under-env (isaunit-e e) env)])
+            (if (aunit? unit) (int 1) (int 0)))]
+        ;; designed based on test examples and descriptions
+        [(aunit? e) e]
+        ;; designed based on test examples and descriptions
+        [(apair? e) 
+          (apair (eval-under-env (apair-e1 e) env) (eval-under-env (apair-e2 e) env))]
+        ;; designed based on test examples and descriptions
+        [(mlet? e) 
+          (eval-under-env (mlet-body e) (cons (cons (mlet-var e) (eval-under-env (mlet-e e) env)) env))]
+        ;; designed based on test examples and descriptions
+        [(fun? e) (closure env e)]
+        ;; designed based on test examples and descriptions
+        [(call? e) 
+          (letrec ([f-exp (eval-under-env (call-funexp e) env)]
+                   [act (eval-under-env (call-actual e) env)]) 
+            (if (closure? f-exp)
+                (letrec ([func (closure-fun f-exp)]
+                          [fname (fun-nameopt func)])
+                  (eval-under-env 
+                    (fun-body func)
+                    (if fname
+                        (cons (cons (fun-formal func) act) (cons (cons fname f-exp) (closure-env f-exp)))
+                        (cons (cons (fun-formal func) act) (closure-env f-exp)))))
+                (error "MUPL first expression is not a closure")))]
         ;; one for each type of expression
         [#t (error (format "bad MUPL expression: ~v" e))]))
 
@@ -61,30 +123,50 @@
   (eval-under-env e null))
 
 ;; Problem C
+;; ;; designed based on test examples and descriptions
+(define (ifaunit e1 e2 e3) 
+  (let ([v1 (isaunit e1)]
+        [zero (int 0)])
+  (ifgreater v1 zero e2 e3)))
 
-(define (ifaunit e1 e2 e3) "CHANGE")
+;; designed based on test examples and descriptions
+(define (mlet* lstlst e2)
+  (if (null? lstlst)
+      e2
+      (letrec ([head (car lstlst)]
+               [tail (cdr lstlst)]
+               [headhead (car head)]
+               [tailhead (cdr head)])
+        (mlet headhead tailhead (mlet* tail e2)))))
 
-(define (mlet* lstlst e2) "CHANGE")
-
-(define (ifeq e1 e2 e3 e4) "CHANGE")
+;; designed based on test examples and descriptions
+(define (ifeq e1 e2 e3 e4) 
+  (mlet "_x" e1 
+    (mlet "_y" e2
+      (letrec ([v1 (var "_x")]
+               [v2 (var "_y")]
+               [veqexp (ifgreater v2 v1 e4 e3)])
+        (ifgreater v1 v2 e4 veqexp)))))
 
 ;; Problem D
 
-(define mupl-map "CHANGE")
-;; this binding is a bit tricky. it must return a function.
-;; the first two lines should be something like this:
-;;
-;;   (fun "mupl-map" "f"    ;; it is  function "mupl-map" that takes a function f
-;;       (fun #f "lst"      ;; and it returns an anonymous function
-;;          ...
-;;
-;; also remember that we can only call functions with one parameter, but
-;; because they are curried instead of
-;;    (call funexp1 funexp2 exp3)
-;; we do
-;;    (call (call funexp1 funexp2) exp3)
-;; 
+;; designed based on test examples and descriptions and hints
+(define mupl-map
+  (fun "mupl-map" "f"
+       (fun #f "lst"
+            (ifaunit (var "lst")
+                     (aunit)
+                     (letrec ([varf (var "f")]
+                              [varMM (var "mupl-map")]
+                              [pair1 (fst (var "lst"))]
+                              [pair2 (snd (var "lst"))]
+                              [varApair (apair (call varf pair1) (call (call varMM varf) pair2))])
+                      varApair )))))
 
+;; designed based on test addtwo and descriptions and hints
 (define mupl-mapAddN
   (mlet "map" mupl-map
-        "CHANGE (notice map is now in MUPL scope)"))
+    (fun "add-i-value" "i"
+        (letrec ([mulpmap (var "map")]
+                 [addi (fun #f "mapElement" (add (var "mapElement") (var "i")))])
+        (call mulpmap addi)))))
