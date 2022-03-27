@@ -400,4 +400,9 @@ tests[121] = Intersect.new(LineSegment.new(ONE, ONE, FOUR, FOUR), LineSegment.ne
 tests[127] = Intersect.new(LineSegment.new(TWO, TWO, THREE, THREE), LineSegment.new(ONE, ONE, FIVE, FIVE)).eval_prog([]) == LineSegment.new(TWO, TWO, THREE, THREE)
 tests[420] = equal(Intersect.new(LineSegment.new(-ONE, -ONE, ONE, ONE), LineSegment.new(-ONE, ONE, ONE, -ONE)).preprocess_prog.eval_prog([]), Point.new(ZERO, ZERO))
 
+tests[720] = equal(Intersect.new(LineSegment.new(0, 0, 4, 4), LineSegment.new(2, 0, 2, 4)).preprocess_prog.eval_prog([]), Point.new(2, 2))
+tests[121111] = Intersect.new(LineSegment.new(0, 0, 0, 0), LineSegment.new(2, 0, 2, 4)).preprocess_prog.eval_prog([]).class == NoPoints.new.class
+tests[2127] = Intersect.new(LineSegment.new(0, 0, 0, 6), LineSegment.new(0, 1, 0, 8)).eval_prog([]) == LineSegment.new(0, 1, 0, 6)
+tests[21327] = Intersect.new(LineSegment.new(0, 0, 0, 6), LineSegment.new(0, 7, 0, 10)).preprocess_prog.eval_prog([]).class == NoPoints.new.class
+
 tests.each_with_index {|v,i| if (not v.nil?) and (not v) then  puts "Test #{i}: #{v}" end }  

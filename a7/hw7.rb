@@ -130,7 +130,9 @@ class Point < GeometryValue
   end
 
   def intersect other
-    other.intersectPoint self
+    x = self.preprocess_prog
+    y = other.preprocess_prog
+    y.intersectPoint x
   end
 
   def intersectPoint p
@@ -177,7 +179,9 @@ class Line < GeometryValue
   end
 
   def intersect other
-    other.intersectLine self
+    x = self.preprocess_prog
+    y = other.preprocess_prog
+    y.intersectLine x
   end
 
   def intersectPoint p
@@ -219,7 +223,9 @@ class VerticalLine < GeometryValue
   end
 
   def intersect other
-    other.intersectVerticalLine self
+    x = self.preprocess_prog
+    y = other.preprocess_prog
+    y.intersectVerticalLine x
   end
 
   def intersectPoint p
@@ -274,7 +280,9 @@ class LineSegment < GeometryValue
   end
 
   def intersect other
-    other.intersectWithSegmentAsLineResult self
+    x = self.preprocess_prog
+    y = other.preprocess_prog
+    y.intersectWithSegmentAsLineResult x
   end
 
   def intersectPoint p
@@ -329,14 +337,20 @@ class LineSegment < GeometryValue
                                       [seg.x1,seg.y1,seg.x2,seg.y2,x1,y1,x2,y2]
                                     end
       if real_close(aYend,bYstart)
-        Point.new(aXend, aYend)
+        if !real_close(aXend, bXstart)
+          NoPoints.new
+        else
+          Point.new(aXend,aYend) 
+        end
       elsif aYend < bYstart
         NoPoints.new
       elsif aYend > bYend
         LineSegment.new(bXstart, bYstart, bXend, bYend)
       else
         if aXstart != bXstart and aXend != bXend
-          NoPoints.new # paralel but not intersecting
+          line_a = two_points_to_line(aXstart,aYstart, aXend, aYend)
+          line_b = two_points_to_line(bXstart,bYstart, bXend, bYend)
+          line_a.intersect(line_b)
         else
           LineSegment.new(bXstart, bYstart, aXend, aYend) 
         end
@@ -349,7 +363,11 @@ class LineSegment < GeometryValue
                                       [seg.x1,seg.y1,seg.x2,seg.y2,x1,y1,x2,y2]
                                     end
       if real_close(aXend,bXstart)
-        Point.new(aXend,aYend) 
+        if !real_close(aYend, bYstart)
+          NoPoints.new
+        else
+          Point.new(aXend,aYend) 
+        end
       elsif aXend < bXstart
         NoPoints.new
       elsif aXend > bXend
